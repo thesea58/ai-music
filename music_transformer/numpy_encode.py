@@ -19,12 +19,13 @@ MAX_NOTE_DUR = (8 * BPB * SAMPLE_FREQ)
 
 
 # Encoding process
-# 1. midi -> music21.Stream
+# 1. midi -> music21.Stream -> chuyển về key Cmajor/ Aminor
 # 2. Stream -> numpy chord array (timestep X instrument X noterange)
 # 3. numpy array -> List[Timestep][NoteEnc]
 def midi2npenc(midi_file, skip_last_rest=True):
     "Converts midi file to numpy encoding for language model"
     stream = file2stream(midi_file)  # 1.
+    stream = transpose(stream)
     chordarr = stream2chordarr(stream)  # 2.
     return chordarr2npenc(chordarr, skip_last_rest=skip_last_rest)  # 3.
 
@@ -122,6 +123,34 @@ def timestep2npenc(timestep, note_range=PIANO_RANGE, enc_type=None):
     if enc_type == 'full':
         # note_class, duration, octave, instrument
         return [[n % 12, d, n // 12, i] for n, d, i in notes]
+
+def transpose(song):
+    """chuyển tông bài hát về C maj/A min
+
+    :param song (music21 stream): bài hát cần chuyển về Đô trưởng/ La thứ
+    :return transposed_song (music21 stream):
+    """
+
+    # lấy key từ khuôn nhạc 
+    parts = song.getElementsByClass(music21.stream.Part)
+    measures_part0 = parts[0].getElementsByClass(music21.stream.Measure)
+    if measures_part0 == None:
+        key = measures_part0[0][4]
+    else:
+        key = None
+    # ước lượng key từ các nốt nhạc trong bài hát
+    if not isinstance(key, music21.key.Key):
+        key = song.analyze("key")
+    
+    # tính khoảng cách từ key hiện tại tới key Cmaj/Amin. E.g., Bmaj -> Cmaj
+    if key.mode == "major":
+        interval = music21.interval.Interval(key.tonic, music21.pitch.Pitch("C"))
+    elif key.mode == "minor":
+        interval = music21.interval.Interval(key.tonic, music21.pitch.Pitch("A"))
+
+    # chuyển bài hát sang key Cmaj/Amin 
+    tranposed_song = song.transpose(interval)
+    return tranposed_song
 
 
 ##### DECODING #####
