@@ -91,8 +91,8 @@ if __name__ == '__main__':
         train_accuracy(accuracy_function(tar, predictions))
 
 
-    train_ds = create_dataset('../midi_songs/', created_vocab, max_len, batch_size, transpose)
-    val_ds = create_dataset('../midi_songs_val', created_vocab, max_len, batch_size, transpose, shuffle=False)
+    train_ds = create_dataset('./midi Melody Of The Night/', created_vocab, max_len, batch_size, transpose)
+    val_ds = create_dataset('./midi_songs_val(MLOTN)', created_vocab, max_len, batch_size, transpose, shuffle=False)
 
     import wandb
 
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         'epochs': EPOCHS,
     })
 
-    gen_tokens = midi2idxenc('../midi_songs_val/balamb.mid', created_vocab, add_bos=True, add_eos=True)[:128]
+    gen_tokens = midi2idxenc('./midi Melody Of The Night/Melody Of The Night 1.mid', created_vocab, add_bos=True, add_eos=True)[:128]
     prev_train_loss = math.inf
     prev_val_loss = math.inf
     tf_generator = TransformerMusicGenerator(transformer, max_len)
